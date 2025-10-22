@@ -1,2 +1,7 @@
-data/
+data/processed/
+# aqui van los pdfs
+data/raw/
+data/visualizations/
+data/vocabularies/
+
 models/
