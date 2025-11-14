@@ -1,0 +1,20 @@
+{
+  "sbert": {
+    "MRR@10": 0.09130434782608694,
+    "Hit@1": 0.0,
+    "Hit@5": 0.0,
+    "Avg_Rank_First_Relevant": 10.0
+  },
+  "tfidf": {
+    "MRR@10": 0.09420289855072461,
+    "Hit@1": 0.0,
+    "Hit@5": 0.0,
+    "Avg_Rank_First_Relevant": 6.0
+  },
+  "hybrid": {
+    "MRR@10": 0.09565217391304347,
+    "Hit@1": 0.0,
+    "Hit@5": 0.043478260869565216,
+    "Avg_Rank_First_Relevant": 5.0
+  }
+}

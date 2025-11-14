@@ -22,6 +22,8 @@ from tqdm import tqdm
 # ----------------------------------------
 MODEL = "llama3"  # ligero, rápido, preciso para texto. Usa "qwen3-vl:4b" si necesitas multimodal.
 NUM_PREDICT = 12
+client = ollama.Client(host="http://192.168.0.124:11434")  # ← PON AQUÍ LA IP DE TU OTRO PC
+
 
 # Taxonomía de intenciones (ajustable)
 INTENTS = {
@@ -58,7 +60,7 @@ def classify_intent_zero_shot(question: str, model: str = MODEL) -> str:
     
     try:
         # Llamada a Ollama
-        response = ollama.generate(
+        response = client.generate(
             model=model,
             prompt=prompt,
             options={
@@ -88,12 +90,12 @@ def classify_intent_zero_shot(question: str, model: str = MODEL) -> str:
             print(f"⚠️ Intent no reconocido '{intent}' en respuesta: '{raw[:50]}...'")
             return "other"
             
-    except ollama.ResponseError as e:
+    except client.ResponseError as e:
         print(f"⚠️ ResponseError: {e.error}")
         if "model not found" in str(e).lower():
             print(f"\n💡 Para usar este script:\n    ollama pull {MODEL}\n")
         return "other"
-    except ollama.RequestError as e:
+    except client.RequestError as e:
         print(f"⚠️ RequestError: no se puede conectar a Ollama (¿está en ejecución?)")
         return "other"
     except AttributeError as e:
@@ -248,7 +250,7 @@ def main():
     # Verificar Ollama
     print("🧪 Verificando conexión con Ollama...")
     try:
-        ollama.list()
+        client.list()
         print("✅ Ollama está accesible.")
     except Exception as e:
         print(f"❌ Error al conectar con Ollama: {e}")
@@ -258,7 +260,7 @@ def main():
     # Verificar modelo
     print(f"🔍 Verificando modelo '{MODEL}'...")
     try:
-        models = [m["model"] for m in ollama.list()["models"]]
+        models = [m["model"] for m in client.list()["models"]]
         if any(MODEL == m or MODEL in m for m in models):
             print(f"✅ Modelo '{MODEL}' disponible.")
         else:
