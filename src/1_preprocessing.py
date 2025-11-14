@@ -65,10 +65,18 @@ class DocumentPreprocessor:
         # Eliminar números de página comunes
         text = re.sub(r'(Página|Page)\s*\d+', '', text, flags=re.IGNORECASE)
         
+        text = re.sub(r'\b[A-Z]{2,}\d+[-_,\s]*\d*[A-Z]*\d*\b', '', text, flags=re.IGNORECASE)
+
+        # Remover números de sección/página
+        text = re.sub(r'\bPart\s+\d+\b', '', text, flags=re.IGNORECASE)
+        text = re.sub(r'\b\d+-\d+\s+\d+\b', '', text)
+
+        text = re.sub(r'\b(Hydraulic system|Functions and operation).*?valve \d+\.?\b', '', text, flags=re.IGNORECASE)
+
         # Normalizar espacios
-        text = ' '.join(text.split())
+        text = re.sub(r'\s+', ' ', text).strip()
         
-        return text.strip()
+        return text
     
     # Funcion para tokenizar
     def tokenize(self, text: str) -> List[str]:
@@ -195,6 +203,7 @@ class DocumentPreprocessor:
         self.statistics['avg_doc_length'] = df['num_tokens'].mean()
         
         return df
+    
     
     # Funcion para guardar todos los datos procesados
     def save_processed_data(self, df: pd.DataFrame, output_dir: str = 'data/processed'):

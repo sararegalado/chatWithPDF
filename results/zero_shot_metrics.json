@@ -1,0 +1,7 @@
+{
+  "model": "llama3",
+  "accuracy": 1.0,
+  "f1_macro": 1.0,
+  "avg_inference_time_ms": 6061.007467905681,
+  "test_set_size": 30
+}

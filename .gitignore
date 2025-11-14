@@ -1,6 +1,2 @@
-data/processed/*
-data/raw/*
-data/visualizations/*
-data/vocabularies/*
-
+data/*
 models/*
