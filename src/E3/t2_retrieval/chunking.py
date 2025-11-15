@@ -69,7 +69,7 @@ def create_chunks_dataframe(df_docs: pd.DataFrame) -> pd.DataFrame:
                 'chunk_index': i,
                 'is_warning': bool(re.search(r'⚠|WARNING|CAUTION|DANGER', chunk, re.I)),
                 'is_procedure': bool(re.match(r'^\d+\.\s*|\bStep\s+\d+', first_line, re.I)),
-                'has_table': chunk.count('|') >= 4 or ':\s*\d' in chunk,
+                'has_table': chunk.count('|') >= 4 or r':\s*\d' in chunk,
                 'num_words': len(chunk.split())
             }
             records.append(record)
