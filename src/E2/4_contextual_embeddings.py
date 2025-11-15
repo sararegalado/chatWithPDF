@@ -432,3 +432,11 @@ if __name__ == "__main__":
     # Guardar embeddings
     print("\nGuardando embeddings...")
     ctx_embeddings.save_embeddings()
+    # Guardar mapping: índice → filename
+    embedding_index = {
+        "filenames": df_processed['filename'].tolist(),
+        "total_documents": len(df_processed)
+    }
+    with open('data/embeddings/embedding_index.json', 'w', encoding='utf-8') as f:
+        json.dump(embedding_index, f, indent=2, ensure_ascii=False)
+    print("Índice de embeddings guardado: data/embeddings/embedding_index.json")

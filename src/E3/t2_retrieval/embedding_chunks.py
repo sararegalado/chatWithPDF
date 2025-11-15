@@ -1,4 +1,3 @@
-# experiments/t2_retrieval/embedding_chunks.py
 import numpy as np
 import pandas as pd
 from sentence_transformers import SentenceTransformer
@@ -24,7 +23,7 @@ def generate_chunk_embeddings(
         normalize_embeddings=True  # crucial para cosine similarity con FAISS
     )
     
-    print(f"✅ Embeddings generados: {embeddings.shape}")
+    print(f"Embeddings generados: {embeddings.shape}")
     return embeddings
 
 
@@ -34,4 +33,4 @@ if __name__ == "__main__":
     
     os.makedirs("data/embeddings/", exist_ok=True)
     np.save("data/embeddings/sbert_chunk_embeddings.npy", sbert_chunk_emb)
-    print("💾 Embeddings por chunk guardados.")
+    print("Embeddings por chunk guardados.")

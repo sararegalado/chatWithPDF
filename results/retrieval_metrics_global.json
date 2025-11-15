@@ -1,0 +1,29 @@
+{
+  "sbert": {
+    "MRR@10": 0.09090909090909088,
+    "Hit@1": 0.0,
+    "Hit@5": 0.0,
+    "Hit@10": 0.0,
+    "NDCG@10": 0.0,
+    "Avg_Rank_First_Relevant": 10.0,
+    "Total_Queries": 23
+  },
+  "tfidf": {
+    "MRR@10": 0.09420289855072461,
+    "Hit@1": 0.0,
+    "Hit@5": 0.0,
+    "Hit@10": 0.043478260869565216,
+    "NDCG@10": 0.007267845868095751,
+    "Avg_Rank_First_Relevant": 6.0,
+    "Total_Queries": 23
+  },
+  "hybrid": {
+    "MRR@10": 0.09090909090909088,
+    "Hit@1": 0.0,
+    "Hit@5": 0.0,
+    "Hit@10": 0.0,
+    "NDCG@10": 0.0,
+    "Avg_Rank_First_Relevant": 10.0,
+    "Total_Queries": 23
+  }
+}
