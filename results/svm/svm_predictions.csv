@@ -1,0 +1,31 @@
+question,true_intent,predicted_intent,is_correct
+How do I reset the thermostat?,how_to,diagnose,False
+What are the steps to replace the battery?,how_to,how_to,True
+How to calibrate the sensor?,how_to,diagnose,False
+Instructions for installing the firmware update.,how_to,how_to,True
+How do I pair the device with my phone?,how_to,diagnose,False
+What is the procedure to clean the filter?,how_to,diagnose,False
+How to enter diagnostic mode?,how_to,diagnose,False
+Steps to mount the bracket on the wall.,how_to,spec_query,False
+What is the maximum voltage?,spec_query,spec_query,True
+Weight of model X200?,spec_query,diagnose,False
+What are the dimensions of the unit?,spec_query,spec_query,True
+Input frequency range?,spec_query,spec_query,True
+Is the operating temperature -10°C to 50°C?,spec_query,spec_query,True
+What is the IP rating?,spec_query,spec_query,True
+Power consumption in standby mode?,spec_query,spec_query,True
+Why won't the device turn on?,diagnose,diagnose,True
+What does error code E12 mean?,diagnose,diagnose,True
+The screen is flashing red. What should I do?,diagnose,diagnose,True
+Device overheats after 5 minutes. Help?,diagnose,diagnose,True
+Error ERR-404 appears on startup.,diagnose,diagnose,True
+No response when pressing buttons.,diagnose,diagnose,True
+Water leak from bottom panel.,diagnose,diagnose,True
+Intermittent Wi-Fi connection.,diagnose,diagnose,True
+Is it safe to open the cover while powered?,safety_check,diagnose,False
+Do I need to wear gloves for this procedure?,safety_check,diagnose,False
+Can this device be used in a bathroom?,safety_check,diagnose,False
+Is grounding required?,safety_check,safety_check,True
+Are there any radiation hazards?,safety_check,diagnose,False
+Can children operate this machine?,safety_check,diagnose,False
+Is it fire-resistant?,safety_check,diagnose,False

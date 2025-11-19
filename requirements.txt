@@ -9,9 +9,12 @@ nltk>=3.8.0
 spacy>=3.7.0
 gensim>=4.3.0
 
-# Deep Learning and Transformers
-torch>=2.0.0
-transformers>=4.35.0
+# Deep Learning and Transformers (versiones compatibles)
+torch==2.9.0
+torchvision==0.24.0
+torchaudio==2.9.0
+transformers==4.51.0
+accelerate>=0.25.0
 sentence-transformers>=2.2.0
 
 # PDF Processing
@@ -29,6 +32,13 @@ gdown>=4.7.0
 
 # LLM Integration (Ollama)
 ollama>=0.1.0
+
+# Evaluation metrics
+rouge-score>=0.1.2
+bert-score>=0.3.13
+
+# Hugging Face datasets
+datasets>=2.14.0
 
 # Jupyter Notebook support (opcional, si trabajas con notebooks)
 jupyter>=1.0.0

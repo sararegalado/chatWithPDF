@@ -8,8 +8,14 @@ from transformers import BartForConditionalGeneration, BartTokenizer
 from tqdm import tqdm
 
 from rouge_score import rouge_scorer
+import sys
 from bert_score import score as bertscore
 
+# Añadir el directorio raíz del proyecto al path
+project_root = Path(__file__).parent.parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+import pandas as pd
 
 #Cargamos la funcion de chunking de la tarea anterior 
 def _load_smart_chunk_text():
@@ -46,7 +52,7 @@ class Summarizer:
         self.max_input_tokens = 1024
         self.smart_chunk_text = _load_smart_chunk_text()
 
-    def _generate_summary_batch(self, texts: List[str], max_len: int = 150, num_beams: int = 4) -> List[str]:
+    def _generate_summary_batch(self, texts: List[str], max_len: int = 300, num_beams: int = 4) -> List[str]:
         # Tokenize batch
         inputs = self.tokenizer(texts, return_tensors="pt", padding=True, truncation=True, max_length=self.max_input_tokens)
         input_ids = inputs["input_ids"].to(self.device)
@@ -93,7 +99,7 @@ class Summarizer:
 
         # Combinamos los resumenes de los chunks y creamos el resumen final
         combined = "\n".join(chunk_summaries)
-        final_summary = self._generate_summary_batch([combined], max_length=max_len_final)[0]
+        final_summary = self._generate_summary_batch([combined], max_len=max_len_final)[0]
         return final_summary
 
     # Evaluación con embeddings de ROBERTa
@@ -124,7 +130,22 @@ if __name__ == "__main__":
     summarizer = Summarizer()
 
     try:
-        text = open("sample_manual.txt", encoding="utf-8").read()
+
+        #text = open("sample_manual.txt", encoding="utf-8").read()
+        chunks_df = pd.read_pickle("data/processed/chunks.pkl")
+        available_pdfs = sorted(chunks_df['filename'].unique().tolist())
+        print(f"Columnas disponibles: {chunks_df.columns.tolist()}")
+        
+        # Seleccionar un PDF específico
+        selected_pdf = available_pdfs[5]
+        print(f"Procesando: {selected_pdf}")
+        
+        # Extraer todos los chunks de ese PDF y concatenarlos
+        pdf_chunks = chunks_df[chunks_df['filename'] == selected_pdf]['chunk_text'].tolist()
+        text = "\n\n".join(pdf_chunks)
+        
+        print(f"Texto extraído: {len(text)} caracteres, {len(pdf_chunks)} chunks")
+
     except FileNotFoundError:
         text = (
             "This device manual explains installation, operation and safety. "
