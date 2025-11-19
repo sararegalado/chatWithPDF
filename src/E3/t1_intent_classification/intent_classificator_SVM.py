@@ -22,7 +22,7 @@ class SVMIntentClassifier:
 
     # Test set
     TEST_SET = [
-        # how_to (8)
+        # how_to
         ("How do I reset the thermostat?", "how_to"),
         ("What are the steps to replace the battery?", "how_to"),
         ("How to calibrate the sensor?", "how_to"),
@@ -32,7 +32,7 @@ class SVMIntentClassifier:
         ("How to enter diagnostic mode?", "how_to"),
         ("Steps to mount the bracket on the wall.", "how_to"),
         
-        # spec_query (7)
+        # spec_query
         ("What is the maximum voltage?", "spec_query"),
         ("Weight of model X200?", "spec_query"),
         ("What are the dimensions of the unit?", "spec_query"),
@@ -41,7 +41,7 @@ class SVMIntentClassifier:
         ("What is the IP rating?", "spec_query"),
         ("Power consumption in standby mode?", "spec_query"),
         
-        # diagnose (8)
+        # diagnose
         ("Why won't the device turn on?", "diagnose"),
         ("What does error code E12 mean?", "diagnose"),
         ("The screen is flashing red. What should I do?", "diagnose"),
@@ -51,7 +51,7 @@ class SVMIntentClassifier:
         ("Water leak from bottom panel.", "diagnose"),
         ("Intermittent Wi-Fi connection.", "diagnose"),
         
-        # safety_check (7)
+        # safety_check
         ("Is it safe to open the cover while powered?", "safety_check"),
         ("Do I need to wear gloves for this procedure?", "safety_check"),
         ("Can this device be used in a bathroom?", "safety_check"),
@@ -64,7 +64,7 @@ class SVMIntentClassifier:
     def __init__(self, spacy_model: str = "en_core_web_md", C: float = 1.0):
         
         # Modelo de spaCy
-        print(f"🔧 Cargando modelo de spaCy: {spacy_model}...")
+        print(f"Cargando modelo de spaCy: {spacy_model}...")
         try:
             self.nlp = spacy.load(spacy_model)
             print(f"Modelo cargado. Dimensión de vectores: {self.nlp.vocab.vectors_length}")
@@ -93,9 +93,7 @@ class SVMIntentClassifier:
     def train(self, X_train: List[str], y_train: List[str], 
               validation_split: float = 0.2) -> dict:
         
-        print("\n" + "="*60)
-        print("ENTRENAMIENTO SVM")
-        print("="*60)
+        print("Entrenando SVM...")
         
         # Split train/validation
         X_train_split, X_val_split, y_train_split, y_val_split = train_test_split(
@@ -138,26 +136,17 @@ class SVMIntentClassifier:
             "n_classes": len(self.label_encoder.classes_)
         }
         
-        print("\n" + "="*60)
-        print("✅ RESULTADOS DE ENTRENAMIENTO")
+        print("Resultados del entrenamiento:\n")
         print("="*60)
         print(f"   Train Accuracy:      {train_acc:.3f}")
         print(f"   Validation Accuracy: {val_acc:.3f}")
         print(f"   Validation F1-macro: {val_f1:.3f}")
-        print("="*60)
         
         return results
     
+    # Predecir intents para una lista de preguntas
     def predict(self, questions: List[str]) -> List[str]:
-        """
-        Predice intents para una lista de preguntas.
         
-        Args:
-            questions: Lista de preguntas
-            
-        Returns:
-            Lista de intents predichos
-        """
         if not self.is_trained:
             raise RuntimeError("El modelo no ha sido entrenado. Llama a train() primero.")
         
@@ -167,39 +156,15 @@ class SVMIntentClassifier:
         
         return y_pred.tolist()
     
-    def predict_single(self, question: str) -> str:
-        """
-        Predice el intent de una sola pregunta.
-        
-        Args:
-            question: Pregunta a clasificar
-            
-        Returns:
-            Intent predicho
-        """
-        return self.predict([question])[0]
-    
+    # Funcion de evaluacion
     def evaluate(self, X_test: List[str], y_test: List[str], 
                  output_dir: str = "results") -> dict:
-        """
-        Evalúa el clasificador en un conjunto de test.
+        print("\nEvaluando...")
         
-        Args:
-            X_test: Lista de preguntas de test
-            y_test: Lista de labels de test
-            output_dir: Directorio para guardar resultados
-            
-        Returns:
-            Diccionario con métricas de evaluación
-        """
-        print("\n" + "="*60)
-        print("🧪 EVALUACIÓN EN TEST SET")
-        print("="*60)
-        
-        # Generate predictions
+        # Generar predicciones
         y_pred = self.predict(X_test)
         
-        # Calculate metrics
+        # Definir metricas
         acc = accuracy_score(y_test, y_pred)
         f1_macro = f1_score(y_test, y_pred, average='macro', zero_division=0)
         
@@ -211,18 +176,18 @@ class SVMIntentClassifier:
             "true_labels": y_test
         }
         
-        print(f"\n📊 Métricas:")
+        print(f"\nMétricas:")
         print(f"   Accuracy:  {acc:.3f}")
         print(f"   F1-macro:  {f1_macro:.3f}")
         
-        # Classification report
-        print("\n📋 Classification Report:")
+        # Generar report de los resultados
+        print("\nGenerando Report:")
         print(classification_report(y_test, y_pred, zero_division=0))
         
-        # Save results
+        # Guardar resultados
         os.makedirs(output_dir, exist_ok=True)
         
-        # Save predictions to CSV
+    
         df_results = pd.DataFrame({
             "question": X_test,
             "true_intent": y_test,
@@ -231,16 +196,16 @@ class SVMIntentClassifier:
         })
         df_results.to_csv(f"{output_dir}/svm_predictions.csv", index=False)
         
-        # Plot confusion matrix
+        # Confusion matrix
         self.plot_confusion_matrix(y_test, y_pred, save_path=f"{output_dir}/svm_confusion_matrix.png")
         
-        print(f"\n💾 Resultados guardados en {output_dir}/")
+        print(f"\nResultados guardados en {output_dir}/")
         
         return results
     
+    # Visualizar confusion matrix
     def plot_confusion_matrix(self, y_true: List[str], y_pred: List[str], 
                             save_path: str = "results/svm_cm.png"):
-        """Visualiza matriz de confusión."""
         labels = sorted(set(y_true))
         cm = confusion_matrix(y_true, y_pred, labels=labels)
         
@@ -263,8 +228,8 @@ class SVMIntentClassifier:
         print(f"📊 Matriz de confusión guardada en {save_path}")
         plt.close()
     
+    # Guardar modelo entrenado
     def save_model(self, path: str = "models/svm_intent_classifier.pkl"):
-        """Guarda el modelo entrenado."""
         os.makedirs(os.path.dirname(path), exist_ok=True)
         
         model_data = {
@@ -279,8 +244,9 @@ class SVMIntentClassifier:
         
         print(f"💾 Modelo guardado en {path}")
     
+
+    # Cargar el modelo previamente entrenado
     def load_model(self, path: str = "models/svm_intent_classifier.pkl"):
-        """Carga un modelo previamente entrenado."""
         with open(path, 'rb') as f:
             model_data = pickle.load(f)
         
@@ -289,27 +255,24 @@ class SVMIntentClassifier:
         self.is_trained = model_data["is_trained"]
         self.vector_dim = model_data["vector_dim"]
         
-        print(f"✅ Modelo cargado desde {path}")
+        print(f"Modelo cargado desde {path}")
     
+    # Cargar el test set por defecto
     @classmethod
     def load_test_set(cls) -> Tuple[List[str], List[str]]:
-        """Carga el test set por defecto."""
         df = pd.DataFrame(cls.TEST_SET, columns=["question", "intent"])
         return df["question"].tolist(), df["intent"].tolist()
 
 
+# Ejemplo de uso del clasificador con SVM
 def main():
-    """Ejemplo de uso del clasificador SVM."""
     
     # Inicializar clasificador
     classifier = SVMIntentClassifier(spacy_model="en_core_web_md", C=1.0)
     
-    # Cargar datos de entrenamiento (usar el test set como ejemplo)
-    # En un caso real, deberías tener un dataset de entrenamiento más grande
+    # Cargar datos de entrenamiento
     X_train, y_train = classifier.load_test_set()
-    
-    print(f"\n⚠️ NOTA: Este es un ejemplo con datos limitados.")
-    print(f"Para mejores resultados, usa un dataset más grande (ej: ATIS, Jarbas/core_intents)")
+    # En este caso hemos cargado los ejemplos hechos a mano pero habria que tener mas.
     
     # Entrenar
     train_results = classifier.train(X_train, y_train, validation_split=0.3)
@@ -322,9 +285,7 @@ def main():
     classifier.save_model("models/svm_intent_classifier.pkl")
     
     # Ejemplo de predicción individual
-    print("\n" + "="*60)
-    print("🔮 EJEMPLOS DE PREDICCIÓN")
-    print("="*60)
+    print("Ejemplos con el modelo entrenado:\n")
     examples = [
         "How do I reset my device?",
         "What is the maximum power consumption?",
@@ -332,10 +293,11 @@ def main():
         "Is it safe to use outdoors?"
     ]
     
-    for question in examples:
-        intent = classifier.predict_single(question)
-        print(f"❓ '{question}'")
-        print(f"   → Intent: {intent}\n")
+    intents = classifier.predict(examples)
+    
+    # Mostrar resultados
+    for question, intent in zip(examples, intents):
+        print(f"Pregunta: {question}\nPredicted Intent: {intent}\n")
 
 
 if __name__ == "__main__":
