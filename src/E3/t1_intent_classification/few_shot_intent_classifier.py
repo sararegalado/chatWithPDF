@@ -213,9 +213,9 @@ class FewShotIntentClassifier:
         return results
     
 
-    def plot_confusion_matrix(y_true: List[str], y_pred: List[str], present_labels: List[str], save_path: str):
+    def plot_confusion_matrix(self, y_true: List[str], y_pred: List[str], present_labels: List[str], save_path: str):
 
-        labels = list(classifier.INTENTS.keys())
+        labels = list(self.INTENTS.keys())
         cm = confusion_matrix(y_true, y_pred, labels=present_labels)
         
         plt.figure(figsize=(7, 6))
