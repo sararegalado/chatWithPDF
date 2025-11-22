@@ -1,12 +1,17 @@
 import ollama
 import time
-from typing import Dict, Optional
+from typing import Dict, List
+from tqdm import tqdm
+import pandas as pd
+import numpy as np
+from sklearn.metrics import accuracy_score, f1_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
+import os
 
-
-class ZeroShotIntentClassifier:
-    """
-    Clasificador de intenciones usando Zero-Shot Learning con Ollama LLMs.
-    """
+# Clasificador de intenciones few-shot usando Ollama
+class FewShotIntentClassifier:
     
     # Taxonomía de intenciones
     INTENTS = {
@@ -24,10 +29,13 @@ class ZeroShotIntentClassifier:
     {intent_descriptions}
 
     Question: "{question}"
-    Intent (one word only):"""
-    
-    # Inicializar el clasificador zero-shot
-    def __init__(self, model: str = "llama3", host: str = "http://192.168.0.124:11434", 
+    Intent (one word only):
+
+    Here are some examples: "{examples}"
+    """
+
+    # Inicializar el clasificador few-shot
+    def __init__(self, model: str = "llama3", host: str = "http://192.168.0.124:11434",
                  num_predict: int = 12):
         
         self.model = model
@@ -41,9 +49,14 @@ class ZeroShotIntentClassifier:
     # Construir el prompt de clasificación
     def build_prompt(self, question: str) -> str:
         descriptions = "\n".join([f"- {k}: {v}" for k, v in self.INTENTS.items()])
+        with open("src/E3/t1_intent_classification/ground_truth/few_shot_examples.json", "r", encoding="utf-8") as f:
+            import json
+            examples_data = json.load(f)
+        examples = " | ".join([item["text"] for item in examples_data])
         return self.PROMPT_TEMPLATE.format(
             intent_descriptions=descriptions,
-            question=question.strip().replace('"', "'")
+            question=question.strip().replace('"', "'"),
+            examples=examples
         )
     
     # Clasificar la intención de una pregunta
@@ -139,12 +152,6 @@ class ZeroShotIntentClassifier:
             return False
     
     def get_model_info(self) -> Dict:
-        """
-        Obtiene información del modelo y configuración.
-        
-        Returns:
-            Diccionario con información del clasificador
-        """
         return {
             "model": self.model,
             "host": self.host,
@@ -153,13 +160,91 @@ class ZeroShotIntentClassifier:
             "num_intents": len(self.INTENTS)
         }
 
+    def evaluate_on_test_set(self, df_test: pd.DataFrame) -> dict:
+        print(f"Evaluando clasificación few-shot con {self.model}...")
+        
+        predictions = []
+        times = []
+        
+        for i, row in tqdm(df_test.iterrows(), total=len(df_test), desc="Clasificando"):
+            pred, inference_time = self.classify_intent(row["text"])
+            predictions.append(pred)
+            times.append(inference_time)
+            
+            # Mostrar ejemplos ocasionales
+            if i % 10 == 0 and i > 0:
+                print(f"\nEjemplo {i}: '{row['text'][:40]}...'")
+                print(f"Real: {row['label']} → Pred: {pred} ({inference_time:.1f} ms)")
+        
+        # Métricas
+        y_true = df_test["label"].tolist()
+        y_pred = predictions
+        
+        # Calcular solo sobre clases que aparecen en el test set
+        present_labels = sorted(set(y_true))
+
+        acc = accuracy_score(y_true, y_pred)
+        f1_macro = f1_score(
+            y_true,
+            y_pred,
+            average="macro",
+            labels=present_labels,
+            zero_division=0
+        )
+        
+        avg_time = np.mean(times)
+        
+        results = {
+            "model": self.model,
+            "accuracy": acc,
+            "f1_macro": f1_macro,
+            "avg_inference_time_ms": avg_time,
+            "predictions": y_pred,
+            "true_labels": y_true,
+            "present_labels": present_labels
+        }
+        
+        # Mostrar resumen
+        print(f"RESULTADOS ({self.model})")
+        print(f"   Accuracy:       {acc:.3f}")
+        print(f"   F1-macro:       {f1_macro:.3f}")
+        print(f"   Tiempo promedio: {avg_time:.1f} ms/pregunta")
+        
+        return results
+    
+
+    def plot_confusion_matrix(y_true: List[str], y_pred: List[str], present_labels: List[str], save_path: str):
+
+        labels = list(classifier.INTENTS.keys())
+        cm = confusion_matrix(y_true, y_pred, labels=present_labels)
+        
+        plt.figure(figsize=(7, 6))
+        sns.heatmap(
+            cm, 
+            annot=True, 
+            fmt="d", 
+            cmap="Blues", 
+            xticklabels=labels, 
+            yticklabels=labels,
+            cbar_kws={'shrink': 0.8}
+        )
+        plt.title("Few-Shot Intent Classification\nConfusion Matrix (qwen3:4b)", fontsize=14)
+        plt.ylabel("True Intent")
+        plt.xlabel("Predicted Intent")
+        plt.tight_layout()
+        
+        os.makedirs("results", exist_ok=True)
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+        print(f"Matriz de confusión guardada en: {save_path}")
+        plt.close()
+
 
 # Ejemplo de uso
 if __name__ == "__main__":
     # Crear clasificador
-    classifier = ZeroShotIntentClassifier(
+    classifier = FewShotIntentClassifier(
         model="mistral:7b-instruct-q4_k_m",
-        host="http://localhost:11434"
+        host="http://192.168.0.124:11434"
     )
     
     # Verificar conexión
@@ -174,39 +259,22 @@ if __name__ == "__main__":
         print(f"   {key}: {value}")
 
     # EVALUACIÓN
-    # Cargar dataset
-    print("\nEvaluando classifier con el dataset sintetico...")
-    with open("src/E3/t1_intent_classification_v2/ground_truth/intents_dataset.json", "r", encoding="utf-8") as f:
-        import json
-        dataset = json.load(f)
-    correct, total = 0, 0
-    for item in dataset:
-        question = item["text"]
-        true_intent = item["label"]
-        predicted_intent, time_ms = classifier.classify_intent(question, verbose=False)
-        is_correct = (predicted_intent == true_intent)
-        correct += int(is_correct)
-        total += 1
-        print(f"\nPregunta: '{question}'")
-        print(f"   → Predicho: {predicted_intent}, Verdadero: {true_intent} {'✅' if is_correct else '❌'} ({time_ms:.1f} ms)")
-    accuracy = correct / total * 100 if total > 0 else 0.0
-    print(f"\nPrecisión total: {accuracy:.2f}% ({correct}/{total})")
-    
-    # Ejemplos de clasificación
-    print("\n" + "="*60)
-    print("EJEMPLOS DE CLASIFICACIÓN")
-    print("="*60)
-    
-    test_questions = [
-        "How do I reset the device?",
-        "What is the maximum voltage?",
-        "The screen is flashing red",
-        "Is it safe to use in the rain?",
-        "Summarize the manual for me",
-        "What is the weather today?"
-    ]
-    
-    for question in test_questions:
-        intent, time_ms = classifier.classify_intent(question, verbose=False)
-        print(f"\n'{question}'")
-        print(f"   → Intent: {intent} ({time_ms:.1f} ms)")
+    # Cargar conjunto de evaluación
+    import json
+    with open("src/E3/t1_intent_classification/ground_truth/evaluation_dataset.json", "r", encoding="utf-8") as f:
+        eval_data = json.load(f)
+    df_eval = pd.DataFrame(eval_data)
+    # Debug: ver columnas antes del rename
+    print(f"\nColumnas originales: {df_eval.columns.tolist()}")
+    print(f"Primeras filas:\n{df_eval.head()}")
+
+    # Evaluar en el conjunto de prueba
+    results = classifier.evaluate_on_test_set(df_eval)
+
+    # Plot confusion matrix
+    classifier.plot_confusion_matrix(
+        y_true=results["true_labels"],
+        y_pred=results["predictions"],
+        present_labels=results["present_labels"],
+        save_path="results/cm_few_shot_mistral.png"
+    )

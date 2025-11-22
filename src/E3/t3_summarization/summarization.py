@@ -37,11 +37,8 @@ def _load_smart_chunk_text():
         return getattr(module, "smart_chunk_text")
 
 
+# Summarizer con dos modos: single (resumir texto completo de una sola vez) y hierarchical (dividir en chunks, resumir cada chunk, y luego resumir los resúmenes concatenados)
 class Summarizer:
-    """Abstractive summarizer en dos modos: 
-    - 'single': resumir todo el texto completo en una sola vez
-    - 'hierarchical': modo principal, dividir el texto en chunks usando `smart_chunk_text`, resumir cada chunk, y luego resumir los resúmenes concatenados (BART tiene límites de longitud)
-    """
     #PREPARAZAR EL SISTEMA PARA RESUMEN ABSTRACCIVO USANDO BART
     def __init__(self, model_name: str = "facebook/bart-large-cnn", device: Optional[str] = None):
         self.device = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
