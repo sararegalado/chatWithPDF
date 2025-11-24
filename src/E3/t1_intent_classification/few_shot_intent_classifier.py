@@ -35,7 +35,7 @@ class FewShotIntentClassifier:
     """
 
     # Inicializar el clasificador few-shot
-    def __init__(self, model: str = "llama3", host: str = "http://192.168.0.124:11434",
+    def __init__(self, model: str = "llama3", host: str = "http://localhost:11434",
                  num_predict: int = 12):
         
         self.model = model
@@ -244,7 +244,7 @@ if __name__ == "__main__":
     # Crear clasificador
     classifier = FewShotIntentClassifier(
         model="mistral:7b-instruct-q4_k_m",
-        host="http://192.168.0.124:11434"
+        host="http://localhost:11434"
     )
     
     # Verificar conexión
